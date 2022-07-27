@@ -43,6 +43,9 @@
 				<li>
 					) - Push SWAP value to stack and clear
 				</li>
+				<li>
+					ANSI Code Support in output
+				</li>
 			</ol>
 			> Instructions:
 			<br>
@@ -64,6 +67,9 @@
 				<li>Loose: The program will output that an error occured and continue.</li>
 				<li>Strict: The program will output that an error occured and stop.</li>
 			</ul>
+			> About:
+			<br>
+			You can find the project on <a href="https://github.com/Perodactyl/fungeyear_befunge_interpreter" target="_blank" title="This opens a new tab.">My GitHub</a>.
 		</div>
 		<div id="controls">
 			<select id="speed-select" onchange="update_settings(); update_pause();">
@@ -163,7 +169,6 @@
 			color: var(--bg-contrast);
 			border-left:2px solid var(--stack-output-seperator);
 			color: #fff;
-			display: flex;
 			flex-direction: column;
 		}
 		#output *{
@@ -172,6 +177,7 @@
 		#output:not(.initial){
 			white-space: pre-wrap; /* Allows newlines and such to be visible, while still allowing word wrapping */
 			word-wrap: anywhere; /* Wrap anywhere so that things still look OK with long strings of text */
+			display: flex;
 		}
 		#output.initial{
 			font-size: x-small;
