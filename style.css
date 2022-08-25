@@ -274,6 +274,8 @@ button:disabled, .table-button:disabled{
 	--syntax-ext-shift: #a0a;
 	--syntax-ext-swap: #f0f;
 	--syntax-ext-length: #af0;
+	--heap-item: #fff;
+	--heap-item-selected: #f0f;
 }
 :root.cobalt{
 	--cell-border-color: #668; /* Averages to 777 */
@@ -306,4 +308,27 @@ button:disabled, .table-button:disabled{
 	--bottom-bar-right: #000;
 	--swap-color: var(--fg-color);
 	--stack-output-seperator: #777;
+}
+#heap{
+	position: absolute;
+    bottom: 0;
+    right: 0;
+	width: 100%;
+    background-color: var(--bg-contrast);
+	display: flex;
+	justify-content: center;
+	border-collapse: collapse;
+}
+#heap .heap-item{
+	display: inline-block;
+	color: var(--heap-item);
+	border-width: 0px 1px 0px 0px; /* Right */
+	border-color: var(--heap-item);
+	border-style: solid;
+	padding: 3px;
+	margin: 0px;
+	width: 2.5rem;
+}
+#heap .heap-item.selected-heap-item{
+	background-color: var(--heap-item-selected);
 }

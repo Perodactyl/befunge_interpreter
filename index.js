@@ -296,6 +296,10 @@ function* run(){
 	let has_used_swap = false;
 	let err = "";
 	let handling = "";
+
+	let heap = [];
+	let heap_ptr = 0;
+	let heap_mode = false;
 	yield;
 	main: while(true){
 		it++;
@@ -346,16 +350,35 @@ function* run(){
 				case "!":
 					stack.push(stack.pop() == 0 ? 1 : 0);
 					break;
-				case "`":
-					stack.push(stack.pop() > stack.pop() ? 1 : 0);
+				case "`": //Greater than
+					if(!heap_mode){
+						stack.push(stack.pop() > stack.pop() ? 1 : 0);
+					}else{ //Allocate memory
+						let len = stack.pop(); //Number of bytes to allocate
+						if(len > 0){
+							heap.push(...(new Array(len).fill(0)));
+							console.log(`Allocated ${len} bytes`);
+						}
+						heap_mode = false;
+					}
 					break;
 				case ">":
-					horizontal_direction = 1;
-					vertical_direction = 0;
+					if(!heap_mode){ //Right
+						horizontal_direction = 1;
+						vertical_direction = 0;
+					}else{ //Move heap pointer to the right
+						heap_ptr++;
+						heap_mode = false;
+					}
 					break;
 				case "<":
-					horizontal_direction = -1;
-					vertical_direction = 0;
+					if(!heap_mode){ //Left
+						horizontal_direction = -1;
+						vertical_direction = 0;
+					}else{ //Move heap pointer to the left
+						heap_ptr--;
+						heap_mode = false;
+					}
 					break;
 				case "^":
 					horizontal_direction = 0;
@@ -382,20 +405,36 @@ function* run(){
 					}
 					break;
 				case "_":
-					horizontal_direction = stack.pop() == 0 ? 1 : -1;
-					vertical_direction = 0;
+					if(!heap_mode){ //Logic Horizontal
+						horizontal_direction = stack.pop() == 0 ? 1 : -1;
+						vertical_direction = 0;
+					}else{ //Set heap pointer to start
+						heap_ptr = 0;
+						heap_mode = false;
+					}
 					break;
 				case "|":
-					horizontal_direction = 0;
-					vertical_direction = stack.pop() == 0 ? 1 : -1;
+					if(!heap_mode){ //Logic Vertical
+						horizontal_direction = 0;
+						vertical_direction = stack.pop() == 0 ? 1 : -1;
+					}else{ //Set heap pointer to center
+						heap_ptr = Math.floor(heap.length / 2);
+						heap_mode = false;
+					}
 					break;
 				case "\"":
 					string_mode = true;
 					break;
 				case ":":
 					let v = stack.pop();
-					stack.push(v);
-					stack.push(v);
+					if(!heap_mode){ //Clone
+						stack.push(v);
+						stack.push(v);
+					}else{ //Assign heap value
+						heap[heap_ptr] = v;
+						heap_mode = false;
+						console.log(`Assigned ${v} to heap[${heap_ptr}]`);
+					}
 					break;
 				case "\\":
 					let i1 = stack.pop();
@@ -404,13 +443,27 @@ function* run(){
 					stack.push(i2);
 					break;
 				case "$":
-					stack.pop();
+					if(!heap_mode){ //Pop-Stack Discard
+						stack.pop();
+					}else{ //Discard heap value
+						heap[heap_ptr] = 0;
+					}
 					break;
 				case ".":
-					output += stack.pop() + " ";
+					if(!heap_mode){ //Pop-Stack Output
+						output += stack.pop() + " ";
+					}else{ //Output heap value
+						output += heap[heap_ptr] + " ";
+						heap_mode = false;
+					}
 					break;
 				case ",":
-					output += String.fromCharCode(stack.pop());
+					if(!heap_mode){ //Pop-Stack Output ASCII
+						output += String.fromCharCode(stack.pop());
+					}else{ //Output heap value as ASCII
+						output += String.fromCharCode(heap[heap_ptr]);
+						heap_mode = false;
+					}
 					break;
 				case "#": //Bridge: Move twice to skip the next cell
 					cursor[0] += horizontal_direction;
@@ -461,11 +514,25 @@ function* run(){
 					swap = 0;
 					break;
 				case ";": //Push stack length to stack(Excluding the element added by this command)
-					stack.push(stack.length);
+					if(!heap_mode){
+						stack.push(stack.length);
+					}else{ //Push the current allocated heap size to the stack
+						stack.push(heap.length);
+						heap_mode = false;
+					}
 					break;
 				case "'": //Pop a value from the stack and push the item stack length - n to the stack (if n = 0, pushes the last element(excluding n), 1 is second-last, etc.)
-					let n = stack.pop();
-					stack.push(stack[stack.length - n - 1]);
+					if(!heap_mode){
+						let n = stack.pop();
+						stack.push(stack[stack.length - n - 1]);
+						break;
+					}else{ //Push the value of the heap at the current heap pointer to the stack
+						stack.push(heap[heap_ptr]);
+						heap_mode = false;
+						break;
+					}
+				case "=": //Heap Mode
+					heap_mode = true;
 					break;
 				default:
 					console.log("Unknown character: " + cell);
@@ -478,9 +545,22 @@ function* run(){
 			}
 		}else if(string_mode){
 			if(cell != "\""){
-				stack.push((cell || " ").charCodeAt(0)); //Spacebar clears cells, but in strings we don't want that
+				let value = (cell || " ").charCodeAt(0); //Spacebar clears cells, but in strings we don't want that
+				if(!heap_mode){
+					stack.push(value);
+				}else{
+					//Read ASCII into heap
+					heap[heap_ptr] = value;
+					console.log(`Assigned ${value} to heap[${heap_ptr}]`);
+					//Don't disable heap mode, because we want to read the next character
+					heap_ptr++; //Move the heap pointer to the next cell
+				}
 			}else{
 				string_mode = false;
+				if(heap_mode){
+					heap_ptr--; //Leave the heap pointer at the last cell
+				}
+				heap_mode = false;
 			}
 		}else if(compose_mode){
 			if(cell == "}"){
@@ -547,11 +627,27 @@ function* run(){
 		}
 		//Remove the lines we removed in the loop from the output by joining them together
 		output = lines.join("\n");
+		//Draw the swap storage
 		if(has_used_swap){
 			$("#swap-value").text(swap).show();
 		}else{
 			$("#swap-value").hide();
 		}
+		//Draw the heap
+		if(heap.length > 0){
+			let heapEl = $("#heap");
+			heapEl.empty();
+			for(let i = Math.max(heap_ptr - 16, 0); i < Math.min(heap_ptr + 16, heap.length); i++){ //Loop through the 32 elements around the heap pointer
+				let el = `<span class='heap-item'>${heap[i]}</span>`;
+				let html = $(el); //Convert to jQuery object
+				//If the cell is selected, highlight it
+				if(i == heap_ptr){
+					html.addClass("selected-heap-item");
+				}
+				heapEl.append(html);
+			}
+		}
+
 		if($("#leap").hasClass("selected") && !cell.trim() && over_iterations < 80 && !string_mode){ //Don't yield, just run the next instruction until we hit a non-empty cell
 			over_iterations++; //Over iterations is the number of iterations that weren't yielded. It is used to safeguard against infinite loops without yielding.
 			continue;
@@ -649,14 +745,15 @@ let examples = {
 	"Endless Counter": "48;62;58;46;118;e:75;n;e;94;43;49;60;e:75;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;",
 	"ANSI Code": "118;e;118;43;55;42;43;49;57;50;34;91;57;50;59;52;51;109;72;105;e;116;104;101;114;101;33;34;60;e:51;n;62;e:27;94;e:51;n;e:2;62;44;e:7;44:16;e;64;e:51;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;",
 	"Truth Machine": "38;58;33;118;e:76;n;e;64;46;95;58;46;118;e:73;n;e:3;94;33;58;60;e:73;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;",
-	"(EXT)Single-Stack Hello World": "118;62;118;62;118;62;118;62;118;62;118;62;118;44;62;e:65;n;34;44;34;44;34;44;34;44;34;44;34;44;34;125;e:66;n;72;34;108;34;111;34;e;34;111;34;108;34;33;48;e:66;n;34;101;34;108;34;44;34;87;34;114;34;100;34;49;e:66;n;44;34;44;34;44;34;44;34;44;34;44;34;44;123;e:66;n;62;94;62;94;62;94;62;94;62;94;62;94;62;94;e:66;n;e:13;62;94;e:65;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;",
-	"(EXT)Shifting Hello World": "34;72;101;108:2;111;44;e;87;111;114;108;100;33;34;91;44;91;44;91;44;91;44;91;44;91;44;91;44;91;44;91;44;91;44;91;44;91;44;91;44;123;49;48;125;44;e:34;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;",
-	"(EXT)Compose Count to 99": "48;62;49;43;58;123;57:2;125;96;118;e:69;n;e;94;e:6;46;58;95;64;e:68;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;",
-	"(EXT)Length-Based Counter": "62;59;58;118;e:76;n;94;e;46;60;e:76;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;",
-	"(EXT)String Printer": "34;72;101;108:2;111;44;e;87;111;114;108;100;33;34;e:64;118;n;e:75;64;e:3;48;n;e:75;124;33;58;91;60;n;e:75;62;44;e:2;94;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;",
-	"(EXT)Looping String Printer": "62;34;72;101;108:2;111;44;e;87;111;114;108;100;33;34;e:63;118;n;94;e:68;36;44;125;48;49;123;60;e:3;48;n;e:75;124;33;58;91;60;n;e:75;62;44;e:2;94;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:79;99;",
-	"(EXT)Length-Based String Printer": "34;72;101;108:2;111;44;e;87;111;114;108;100;33;34;e:64;118;n;e:77;118;59;60;n;e:76;118;95;64;e;n;e:76;91;e:3;n;e:76;62;44;e;94;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;",
-	"(EXT)Looping Length-Based String Printer": "62;34;72;101;108:2;111;44;e;87;111;114;108;100;33;34;e:63;118;n;e:77;118;59;60;n;e:76;118;95;118;e;n;e:76;91;e:3;n;e:76;62;44;e;94;n;e:78;123;e;n;e:78;49;e;n;e:78;48;e;n;e:78;125;e;n;e:78;44;e;n;94;e:77;62;e;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:79;99;"
+	"Single-Stack Hello World": "118;62;118;62;118;62;118;62;118;62;118;62;118;44;62;e:65;n;34;44;34;44;34;44;34;44;34;44;34;44;34;125;e:66;n;72;34;108;34;111;34;e;34;111;34;108;34;33;48;e:66;n;34;101;34;108;34;44;34;87;34;114;34;100;34;49;e:66;n;44;34;44;34;44;34;44;34;44;34;44;34;44;123;e:66;n;62;94;62;94;62;94;62;94;62;94;62;94;62;94;e:66;n;e:13;62;94;e:65;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;",
+	"Shifting Hello World": "34;72;101;108:2;111;44;e;87;111;114;108;100;33;34;91;44;91;44;91;44;91;44;91;44;91;44;91;44;91;44;91;44;91;44;91;44;91;44;91;44;123;49;48;125;44;e:34;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;",
+	"Compose Count to 99": "48;62;49;43;58;123;57:2;125;96;118;e:69;n;e;94;e:6;46;58;95;64;e:68;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;",
+	"Length-Based Counter": "62;59;58;118;e:76;n;94;e;46;60;e:76;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;",
+	"String Printer": "34;72;101;108:2;111;44;e;87;111;114;108;100;33;34;e:64;118;n;e:75;64;e:3;48;n;e:75;124;33;58;91;60;n;e:75;62;44;e:2;94;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;",
+	"Looping String Printer": "62;34;72;101;108:2;111;44;e;87;111;114;108;100;33;34;e:63;118;n;94;e:68;36;44;125;48;49;123;60;e:3;48;n;e:75;124;33;58;91;60;n;e:75;62;44;e:2;94;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:79;99;",
+	"Length-Based String Printer": "34;72;101;108:2;111;44;e;87;111;114;108;100;33;34;e:64;118;n;e:77;118;59;60;n;e:76;118;95;64;e;n;e:76;91;e:3;n;e:76;62;44;e;94;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;",
+	"Looping Length-Based String Printer": "62;34;72;101;108:2;111;44;e;87;111;114;108;100;33;34;e:63;118;n;e:77;118;59;60;n;e:76;118;95;118;e;n;e:76;91;e:3;n;e:76;62;44;e;94;n;e:78;123;e;n;e:78;49;e;n;e:78;48;e;n;e:78;125;e;n;e:78;44;e;n;94;e:77;62;e;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:79;99;",
+	"Heap Hello World": "123;50;53;54;125;61;96;61;34;33;100;108;114;111;119;e;44;111;108:2;101;72;34;118;60;e:55;n;e:23;61;60;e:55;n;e:23;44;61;e:55;n;e:23;62;94;e:55;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;"
 };
 var eSelect = $("#example-select");
 for(let e in examples){
@@ -735,4 +832,18 @@ function sync_board(){ //Syncs the board array with the board DOM
 			set_selected_conts(board[y][x]);
 		}
 	}
+}
+async function export_text(){ //Converts board to text and exports it.
+	let str = "";
+	body.addClass("exporting");
+	for(let y = 0; y < board.length; y++){
+		for(let x = 0; x < board[y].length; x++){
+			str += board[y][x] ? board[y][x] : " ";
+			set_selected_cell(x, y);
+			$("#output").html(str);
+			await sleep(1);
+		}
+		str += "<br />";
+	}
+	body.removeClass("exporting");
 }
