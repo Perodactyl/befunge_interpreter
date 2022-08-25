@@ -2,7 +2,7 @@ let body = $("#body");
 let status = $("#status");
 let ansi_up = new AnsiUp(); //Converts ANSI to HTML
 
-let board = []; //! ATTENTION! Board is an array to be index Y BEFORE X. (array of columns)
+let board = []; //! ATTENTION! Board is an array to be indexed Y BEFORE X. (array of columns)
 let board_width = 80;
 let board_height = 25;
 for (let i = 0; i < board_height; i++) {
@@ -95,7 +95,7 @@ function set_selected_conts(val){
 	if(el.text() != val || board[selected_cell_y][selected_cell_x] != val){
 		has_modified_board = true;
 	}
-	el.text(val)
+	el.text(val);
 	board[selected_cell_y][selected_cell_x] = val;
 	el.attr("data-syntax-highlight", val);
 }
@@ -127,6 +127,7 @@ let is_dir_temporary = false;
 //Add a handler to the body
 $(document.body).on("keydown", function (e) {
 	let key = e.key;
+	if(e.ctrlKey) return;
 	if(key == "Enter"){
 		set_selected_cell(selected_cell_x, selected_cell_y+1);
 	}else if(key == "Backspace"){
@@ -203,6 +204,9 @@ $(document.body).on("keydown", function (e) {
 });
 const sleep = (ms)=>new Promise(resolve=>setTimeout(resolve,ms));
 function char(code){
+	if(code < 0){
+		return "[NEG]";
+	}
 	var char = String.fromCharCode(code);
 	switch(char){
 		case " ":
@@ -296,10 +300,16 @@ function* run(){
 	let has_used_swap = false;
 	let err = "";
 	let handling = "";
+	let highspeed_count = 0; //Used in multiple iterations per ms situations
 
 	let heap = [];
 	let heap_ptr = 0;
 	let heap_mode = false;
+	function stack_pop(){
+		if(stack.length > 0){
+			return stack.pop();
+		}else return 0;
+	}
 	yield;
 	main: while(true){
 		it++;
@@ -320,17 +330,17 @@ function* run(){
 					stack.push(Number(cell));
 					break;
 				case "+":
-					stack.push(stack.pop() + stack.pop());
+					stack.push(Number(stack_pop()) + Number(stack_pop()));
 					break;
 				case "-":
-					stack.push(stack.pop() - stack.pop());
+					stack.push(stack_pop() - stack_pop());
 					break;
 				case "*":
-					stack.push(stack.pop() * stack.pop());
+					stack.push(stack_pop() * stack_pop());
 					break;
 				case "/":
-					let a = stack.pop();
-					let b = stack.pop();
+					let a = stack_pop();
+					let b = stack_pop();
 					let ans = 0;
 					if(a != 0 && b != 0){
 						ans = Math.floor(a / b);
@@ -345,16 +355,16 @@ function* run(){
 					stack.push(ans);
 					break;
 				case "%":
-					stack.push(stack.pop() % stack.pop());
+					stack.push(stack_pop() % stack_pop());
 					break;
 				case "!":
-					stack.push(stack.pop() == 0 ? 1 : 0);
+					stack.push(stack_pop() == 0 ? 1 : 0);
 					break;
 				case "`": //Greater than
 					if(!heap_mode){
-						stack.push(stack.pop() > stack.pop() ? 1 : 0);
+						stack.push(stack_pop() > stack_pop() ? 1 : 0);
 					}else{ //Allocate memory
-						let len = stack.pop(); //Number of bytes to allocate
+						let len = stack_pop(); //Number of bytes to allocate
 						if(len > 0){
 							heap.push(...(new Array(len).fill(0)));
 							console.log(`Allocated ${len} bytes`);
@@ -406,7 +416,7 @@ function* run(){
 					break;
 				case "_":
 					if(!heap_mode){ //Logic Horizontal
-						horizontal_direction = stack.pop() == 0 ? 1 : -1;
+						horizontal_direction = stack_pop() ? -1 : 1;
 						vertical_direction = 0;
 					}else{ //Set heap pointer to start
 						heap_ptr = 0;
@@ -416,7 +426,7 @@ function* run(){
 				case "|":
 					if(!heap_mode){ //Logic Vertical
 						horizontal_direction = 0;
-						vertical_direction = stack.pop() == 0 ? 1 : -1;
+						vertical_direction = stack_pop() ? -1 : 1;
 					}else{ //Set heap pointer to center
 						heap_ptr = Math.floor(heap.length / 2);
 						heap_mode = false;
@@ -426,7 +436,7 @@ function* run(){
 					string_mode = true;
 					break;
 				case ":":
-					let v = stack.pop();
+					let v = stack_pop();
 					if(!heap_mode){ //Clone
 						stack.push(v);
 						stack.push(v);
@@ -437,21 +447,21 @@ function* run(){
 					}
 					break;
 				case "\\":
-					let i1 = stack.pop();
-					let i2 = stack.pop();
+					let i1 = stack_pop();
+					let i2 = stack_pop();
 					stack.push(i1);
 					stack.push(i2);
 					break;
 				case "$":
 					if(!heap_mode){ //Pop-Stack Discard
-						stack.pop();
+						stack_pop();
 					}else{ //Discard heap value
 						heap[heap_ptr] = 0;
 					}
 					break;
 				case ".":
 					if(!heap_mode){ //Pop-Stack Output
-						output += stack.pop() + " ";
+						output += stack_pop() + " ";
 					}else{ //Output heap value
 						output += heap[heap_ptr] + " ";
 						heap_mode = false;
@@ -459,7 +469,7 @@ function* run(){
 					break;
 				case ",":
 					if(!heap_mode){ //Pop-Stack Output ASCII
-						output += String.fromCharCode(stack.pop());
+						output += String.fromCharCode(stack_pop());
 					}else{ //Output heap value as ASCII
 						output += String.fromCharCode(heap[heap_ptr]);
 						heap_mode = false;
@@ -470,16 +480,17 @@ function* run(){
 					cursor[1] += vertical_direction;
 					break; //Second move is always done later.
 				case "p":
-					let y = stack.pop();
-					let x = stack.pop();
-					let vP = stack.pop();
+					let y = stack_pop();
+					let x = stack_pop();
+					let vP = stack_pop();
 					set_selected_cell(x, y);
 					set_selected_conts(String.fromCharCode(vP));
 					break;
 				case "g": //Get cell
-					let yG = stack.pop(); //Variables are renamed to avoid re-definition errors
-					let xG = stack.pop();
-					stack.push(get_cell_html(xG, yG).text().charCodeAt(0));
+					let yG = stack_pop(); //Variables are renamed to avoid re-definition errors
+					let xG = stack_pop();
+					let conts = get_cell_html(xG, yG).text().charCodeAt(0);
+					stack.push(isNaN(conts) ? 0 : conts);
 					break;
 				case "&":
 					stack.push(prompt("Enter a number:"));
@@ -495,10 +506,10 @@ function* run(){
 
 				//EXTENDED Befunge Commands (non-standard)
 				case "[": //Shift L
-					stack.push(stack.shift());
+					stack.push(stack.length > 0 ? stack.shift() : 0); //Always be safe so that unknown values are 0s.
 					break;
 				case "]": //Shift R
-					stack.unshift(stack.pop());
+					stack.unshift(stack_pop());
 					break;
 				case "{": //Begin compose mode
 					compose_mode = true;
@@ -506,7 +517,7 @@ function* run(){
 					break; //We don't need an end command for this. it's handled in the compose mode condition.
 				case "(": //Assign swap
 					has_used_swap = true;
-					swap = stack.pop();
+					swap = stack_pop();
 					break;
 				case ")": //Load swap
 					has_used_swap = true;
@@ -523,7 +534,7 @@ function* run(){
 					break;
 				case "'": //Pop a value from the stack and push the item stack length - n to the stack (if n = 0, pushes the last element(excluding n), 1 is second-last, etc.)
 					if(!heap_mode){
-						let n = stack.pop();
+						let n = stack_pop();
 						stack.push(stack[stack.length - n - 1]);
 						break;
 					}else{ //Push the value of the heap at the current heap pointer to the stack
@@ -567,7 +578,8 @@ function* run(){
 				compose_mode = false;
 			}else{
 				//Concat the character to the last element of the stack
-				stack[stack.length - 1] = stack[stack.length - 1] * 10 + Number(cell || "0");
+				if(!isNaN(Number(cell || "0")))
+					stack[stack.length - 1] = stack[stack.length - 1] * 10 + Number(cell || "0");
 			}
 		}
 		cursor[0] += horizontal_direction;
@@ -603,6 +615,9 @@ function* run(){
 		//Loop through top 32 elements of stack
 		for(let i = 0; i < stack.length; i++){
 			if(i + MAX_VIS_STACK_LEN >= stack.length){
+				if(stack[i] == undefined)stack[i] = 0;
+				if(isNaN(stack[i]))stack[i] = 0;
+				if(stack[i] % 1 > 0)stack[i] = Math.trunc(stack[i]);
 				let el = `<span class='stack-element'><span class='stack-entry-num'>${i}</span><span class='stack-num'>${stack[i]}</span><span class='stack-char'>${`(${char(stack[i])})`.padEnd(7, " ")}</span></span>`;
 				let html = $(el); //Convert to jQuery object	
 				html.children(".stack-char").attr("data-char", stack[i]);
@@ -654,12 +669,26 @@ function* run(){
 		}else{
 			over_iterations = 0;
 		}
-		yield it;
+		if($("#speed-select").val() == "_instanter"){
+			highspeed_count++;
+			if(highspeed_count >= 100){
+				highspeed_count = 0;
+				yield it;
+			}
+		}else{
+			yield it;
+		}
 	}
 	if(err && handling == "strict"){
 		err = err.replace(/\x1b\[(\d+;)*\d+[a-z]/g, ""); //Remove ANSI escape codes
 		console.log(err);
 		status.text(`Program exited with error: ${err}`);
+	}
+	if(stepping){ //The step button doesn't have a handler for this, so we implement it here
+		current_action = null;
+		status.text("Program finished.");
+		pause = true;
+		update_pause();
 	}
 }
 set_selected_cell(0, 0);
@@ -753,7 +782,9 @@ let examples = {
 	"Looping String Printer": "62;34;72;101;108:2;111;44;e;87;111;114;108;100;33;34;e:63;118;n;94;e:68;36;44;125;48;49;123;60;e:3;48;n;e:75;124;33;58;91;60;n;e:75;62;44;e:2;94;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:79;99;",
 	"Length-Based String Printer": "34;72;101;108:2;111;44;e;87;111;114;108;100;33;34;e:64;118;n;e:77;118;59;60;n;e:76;118;95;64;e;n;e:76;91;e:3;n;e:76;62;44;e;94;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;",
 	"Looping Length-Based String Printer": "62;34;72;101;108:2;111;44;e;87;111;114;108;100;33;34;e:63;118;n;e:77;118;59;60;n;e:76;118;95;118;e;n;e:76;91;e:3;n;e:76;62;44;e;94;n;e:78;123;e;n;e:78;49;e;n;e:78;48;e;n;e:78;125;e;n;e:78;44;e;n;94;e:77;62;e;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:79;99;",
-	"Heap Hello World": "123;50;53;54;125;61;96;61;34;33;100;108;114;111;119;e;44;111;108:2;101;72;34;118;60;e:55;n;e:23;61;60;e:55;n;e:23;44;61;e:55;n;e:23;62;94;e:55;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;"
+	"Heap Hello World": "123;50;53;54;125;61;96;61;34;33;100;108;114;111;119;e;44;111;108:2;101;72;34;118;60;e:55;n;e:23;61;60;e:55;n;e:23;44;61;e:55;n;e:23;62;94;e:55;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;",
+	"Calculator": "38;126;38;92;93:3;118;e:72;n;e:7;58;e:72;n;e:7;34;e:72;n;e:7;42;e:72;n;e:7;34;e:72;n;e:7;45;e:72;n;e:6;118;95;36;42;46;118;e:68;n;e:6;58;e:73;n;e:6;34;e:73;n;e:6;43;e:73;n;e:6;34;e:73;n;e:6;45;e:73;n;e:5;118;95;36;43;46;e;118;e:68;n;e:5;58;e:74;n;e:5;34;e:74;n;e:5;47;e:74;n;e:5;34;e:74;n;e:5;45;e:74;n;e:4;118;95;36;92;47;46;e;118;e:2;64;95;36;92;37;46;118;e:59;n;e:4;58;e:10;45;e:64;n;e:4;34;e:10;34;e:64;n;e:4;45;e:10;37;e:64;n;e:4;34;e:10;34;e:64;n;e:4;45;36;92;45;46;e:2;118;e:3;58;e:4;64;e:59;n;e:4;95;e:6;64;e:3;94;e:64;",
+	"99 Bottles of Beer": "123;57:2;125;58;46;48;62;34;e:2;108:2;97;119;e;101;104;116;e;110;111;e;114;101:2;98;e;102;111;e;115;101;108;116:2;111;98;34;62;58;118;36;e:37;n;e:39;94;44;95;94;62;e:2;58;46;48;118;e:30;n;e:7;48;e:23;118;34;98;111;116:2;108;101;115;e;111;102;e;98;101:2;114;34;60;e:30;n;e:7;46;e:23;62;58;118;e:46;n;e:7;58;e:23;94;44;95;36;57;49;43;44;48;34;110;119;111;100;e;101;110;111;e;101;107;97;84;34;62;58;118;e:22;n;e:7;94;e;60;e:45;94;44;95;118;e:21;n;e:7;62;58;124;e:22;62;58;118;34;e;80;97;115:2;e;105;116;e;97;114;111;117;110;100;34;48;44;43;49;57;36;60;e:21;n;e:7;44;e;64;e:22;94;44;95;118;e:44;n;e:7;43;e:27;36;e:44;n;e:7;49;e:27;57;e:44;n;e:7;57;e:27;49;e:44;n;62;58;118;e:4;36;e:27;43;e:43;62;n;94;44;95;57;49;43;44;94;e:27;44;e:44;n;34;98;111;116:2;108;101;115;e;111;102;e;98;101:2;114;e;111;110;e;116;104;101;e;119;97;108:2;33;34;48;46;58;60;e;49;e:43;94;n;e:35;92;e:44;n;e:35;45;e:44;n;e:33;94;e;60;e:44;n;e:80;n;e:80;n;e:80;n;e:42;62;118;e:36;n;e:42;44;e:37;n;e:42;43;e:37;n;e:42;49;e:37;n;e:42;57;e:37;"
 };
 var eSelect = $("#example-select");
 for(let e in examples){
@@ -838,12 +869,17 @@ async function export_text(){ //Converts board to text and exports it.
 	body.addClass("exporting");
 	for(let y = 0; y < board.length; y++){
 		for(let x = 0; x < board[y].length; x++){
-			str += board[y][x] ? board[y][x] : " ";
-			set_selected_cell(x, y);
-			$("#output").html(str);
-			await sleep(1);
+			if(board[y][x]){
+				str += board[y][x];
+				$("#output").html(str);
+				set_selected_cell(x, y);
+				await sleep(1);
+			}else{
+				str += " ";
+			}
 		}
 		str += "<br />";
 	}
+	$("#output").html(str);
 	body.removeClass("exporting");
 }

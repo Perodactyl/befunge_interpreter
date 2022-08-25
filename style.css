@@ -87,7 +87,7 @@ body{
 .no-background, .no-background-self, .no-background *{ /* Make sure that elements that have the background color have the fg color so that there is enough contrast. */
 	color: var(--bg-contrast);
 }
-:not(.no-background, .no-background-self, .no-background *){
+.controls > :not(.no-background, .no-background-self, .no-background *){
 	color: var(--fg-color);
 }
 #main-table, #body{
