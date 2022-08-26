@@ -49,7 +49,7 @@ html *{
 	word-wrap: anywhere; /* Wrap anywhere so that things still look OK with long strings of text */
 	display: flex;
 }
-#output.initial{
+#output.initial, #output.exporting{
 	font-size: x-small;
 }
 .output-line-no{

@@ -1,5 +1,6 @@
 let body = $("#body");
 let status = $("#status");
+let output_el = $("#output");
 let ansi_up = new AnsiUp(); //Converts ANSI to HTML
 
 let board = []; //! ATTENTION! Board is an array to be indexed Y BEFORE X. (array of columns)
@@ -284,7 +285,7 @@ function char(code){
 const MAX_VIS_STACK_LEN = 24;
 
 function* run(){
-	$("#output").removeClass("initial").text("");
+	output_el.removeClass("initial").text("").removeClass("exporting");
 	set_selected_cell(0, 0);
 	let cursor = [0, 0];
 	let stack = [];
@@ -667,13 +668,12 @@ function* run(){
 				stackEl.append(html);
 			}
 		}
-		let outputEl = $("#output");
-		outputEl.empty();
+		output_el.empty();
 		var split = ansi_up.ansi_to_html(output).split("\n");
 		var lines = output.split("\n");
 		for(var i = 0; i < split.length; i++){ //Loop through bottom 32 lines of output
 			if(i + 32 >= split.length){
-				outputEl.append($(`<span class='output-line'><span class='output-line-no'>${i+output_shadow_offset}</span><span class='output-line-text'>${split[i]}</span></span>`));
+				output_el.append($(`<span class='output-line'><span class='output-line-no'>${i+output_shadow_offset}</span><span class='output-line-text'>${split[i]}</span></span>`));
 			}else{
 				output_shadow_offset++; //This is for performance reasons, so we don't loop through every line of output
 				lines.splice(i, 1);
@@ -824,8 +824,8 @@ let examples = {
 	"Length-Based String Printer":         "34;72;101;108:2;111;44;e;87;111;114;108;100;33;34;e:64;118;n;e:77;118;59;60;n;e:76;118;95;64;e;n;e:76;91;e:3;n;e:76;62;44;e;94;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;",
 	"Looping Length-Based String Printer": "62;34;72;101;108:2;111;44;e;87;111;114;108;100;33;34;e:63;118;n;e:77;118;59;60;n;e:76;118;95;118;e;n;e:76;91;e:3;n;e:76;62;44;e;94;n;e:78;123;e;n;e:78;49;e;n;e:78;48;e;n;e:78;125;e;n;e:78;44;e;n;94;e:77;62;e;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:79;99;",
 	"Heap Hello World":                    "123;50;53;54;125;61;96;61;34;33;100;108;114;111;119;e;44;111;108:2;101;72;34;118;60;e:55;n;e:23;61;60;e:55;n;e:23;44;61;e:55;n;e:23;62;94;e:55;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;n;e:80;",
-	"Calculator":                          "38;126;38;92;93:3;118;e:72;n;e:7;58;e:72;n;e:7;34;e:10;62;58;118;e:59;n;e:7;42;e:10;94;44;95;118;e:58;n;e:7;34;e:12;62;e:15;48;118;e:42;n;e:7;45;e:4;62;e:4;35;94;e;94;35;34;73;110;118;97;108;105;100;e;73;110;112;117;116;34;60;e:42;n;e:6;118;95;36;42;46;118;94;95;36;39;46;e:3;118;e:59;n;e:6;58;e:6;45;e:66;n;e:6;34;e:6;34;e:66;n;e:6;43;e:6;62;e:66;n;e:6;34;e:6;34;e:66;n;e:6;45;e:6;58;e:66;n;e:5;118;95;36;43;46;e;118;e;94;95;36;96;46;e:2;118;60;e:58;n;e:5;58;e:8;45;e:65;n;e:5;34;e:8;34;e:65;n;e:5;47;e:8;60;e:65;n;e:5;34;e:8;34;e:65;n;e:5;45;e:8;58;e:65;n;e:4;118;95;36;92;47;46;e;118;e:2;94;95;36;92;37;46;118;e:59;n;e:4;58;e:10;45;e:64;n;e:4;34;e:10;34;e:64;n;e:4;45;e:10;37;e:64;n;e:4;34;e:10;34;e:64;n;118;e:3;45;36;92;45;46;e:2;118;e:3;58;e:4;62;e:59;n;62;35;e:2;95;e:6;64;e:3;94;e:64;",
-	"Better Calculator":                   "38;126;118;e:8;118;e:8;118;e:9;118;e:49;n;e:2;58;e:8;58;e:8;58;e:9;58;e:49;n;e:2;34;e:8;34;e:8;34;e:9;34;e:49;n;e:2;43;e:8;47;e:8;60;e:9;94;e:17;62;e:20;118;e:10;n;e:2;34;e:8;34;e:8;34;e:9;34;e:2;62;49;92;45;118;e:9;118;34;73;110;118;97;108;105;100;e;67;104;97;114;97;99;116;101;114;58;e;34;60;e:10;n;e:2;45;e:8;45;e:8;45;e:9;45;e:2;38;118;e:2;60;e:9;62;35;e;119;118;e:28;n;e;118;95;36;38;43;46;e:2;118:2;95;36;38;92;47;46;118;e;118;95;36;38;96;46;118;e:3;118;95;36;58;94;62;49;92;45;118;e:41;n;e;62;118;e:7;62;118;e:7;62;118;e:8;62;118;e:3;124;e:3;93;e:41;n;e:2;58;e:8;58;e:8;58;e:4;118;e:3;46;58;35;36:2;60;e:45;n;e:2;34;e:8;34;e:8;34;e:9;34;e:3;35;e:3;58;e:41;n;e:2;45;e:8;37;e:8;50;e:9;33;62;118;e;58;e:3;92;e:41;n;e:2;34;e:8;34;e:8;34;e:9;34;58;e:2;93;e:3;93;e:41;n;e:2;45;e:8;45;e:8;45;e:9;45;36;e:2;94;e:2;42;60;e:41;n;e;118;95;36;38;92;45;46;e;118:2;95;36;38;92;37;46;118;e;118;95;36;58;42;46;118;e:3;118;95;94;62;58:2;e;118;e:43;n;e;62;118;e:7;62;118;e:7;62;118;e:8;62;118;e;94;45;92;49;95;36:2;62;91;49;92;45;118;e:35;n;e:2;58;e:8;58;e:8;58;e:9;58;e:13;58;e:35;n;e:2;34;e:8;34;e:8;34;e:3;62;118;e:4;34;e:8;94;e:2;42;93;95;36;46;118;e:32;n;e:2;42;e:8;60;e:8;51;e:3;46;e:5;61;e:49;n;e:2;34;e:8;34;e:8;34;e:3;42;e:5;34;e:49;n;e:2;45;e:8;45;e:8;45;e:3;42;e:5;45;e:49;n;e;118;95;36;38;42;46;e:2;118:2;95;36;38;92;96;46;118;e;118;95;36;58:2;94;e:4;118;95;36;38;45;33;46;118;e:43;n;e;62;118;e:7;62;e:18;62;e:18;94;e:31;n;e:19;62;e:10;118;e:49;n;e:2;62;e:8;118;e:68;n;64;e:8;60;e:7;60;e:7;60;e:3;60;e:6;60;e:10;60;e:3;60;e:28;",
+	"Calculator":                          "C38;e:22;118;62;n;126;e:23;35;n;38;e:24;n;92;e:24;n;93;e:17;118;58;34;45;34;45;95;n;93;e:11;118;58;34;47;34;45;95;e:4;36;e;n;93;e:5;118;58;34;43;34;45;95;e:5;36;e:4;92;e;n;118;58;34;42;34;45;95;e:5;36;e:5;92;e:4;45;e;n;e:6;36;e:5;43;e:5;47;e:4;46;e;n;e:6;42;e:5;46;e:5;46;e:6;n;e:6;46;e:18;n;e:6;118;e:5;118;e:5;118;e:4;118;64;n;e:5;62;94;e:18;n;e:6;95;45;34;62;34;58;94;e:12;n;e:6;36;e:5;95;45;34;60;34;58;94;e:6;n;e:6;39;e:5;36;e:5;95;45;34;37;34;58;94;n;e:6;46;e:5;96;e:5;36;e:6;n;e:5;35;e:6;46;e:5;92;e:6;n;e:2;62;94;e;94;e:12;37;e:6;n;e:2;58;44;e:14;46;e:6;n;e:2;118;95;62;94;118;e:5;118;e:5;118;e:4;62;e;n;e:3;118;e;35;e:6;60;e:12;n;e:5;34;e:19;n;e:5;73;e:19;n;e:5;110;e:19;n;e:5;118;e:19;n;e:5;97;e:19;n;e:5;108;e:19;n;e:5;105;e:19;n;e:5;100;e:19;n;e:25;n;e:5;73;e:19;n;e:5;110;e:19;n;e:5;112;e:19;n;e:5;117;e:19;n;e:5;116;e:19;n;e:4;48;34;e:19;n;e:4;118;60;e:19;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;",
+	"Better Calculator":                   "C38;e:23;64;n;126;e:5;118;62;e:5;118;62;e:5;118;62;e:3;n;118;58;34;43;34;45;95;118;58;34;45;34;45;95;118;58;34;42;34;45;95;118;e;62;e;n;e:6;36;e:6;36;e:6;36;e:4;n;e:6;38;e:6;38;e:6;38;e:4;n;e:6;43;e:6;92;e:6;42;e:4;n;e:6;46;e:6;45;e:6;46;e:4;n;e:13;46;e:11;n;e:25;n;e:6;118;e:6;118;e:6;118;e:3;60;n;e:6;118;62;e:5;118;62;e:5;118;62;e:3;n;118;58;34;47;34;45;95;118;58;34;37;34;45;95;118;58;34;60;34;45;95;e:2;118;e;n;e:6;36;e:6;36;e:6;36;e:4;n;e:6;38;e:6;38;e:6;38;e:4;n;e:6;92;e:6;92;e:6;92;e:4;n;e:6;47;e:6;37;e:6;96;e:4;n;e:6;46;e:6;46;e:6;46;e:4;n;e:6;118;e:6;118;e:6;118;e:3;60;n;e:25;n;e:6;118;62;e:5;118;62;e:5;118;e;62;e:2;n;118;58;34;60;34;45;95;118;58;34;50;34;45;95;118;58;34;51;34;45;95;118;e:3;n;e:6;36;e:6;36;e:6;36;e:4;n;e:6;38;e:6;58;e:6;58;e:4;n;e:6;96;e:6;42;e:6;58;e:4;n;e:6;46;e:6;46;e:2;62;46;42:2;94;e:4;n;e:6;118;e;118;e:4;118;e:2;118;e:7;60;n;e:25;n;e:25;n;e:25;n;e:6;118;62;46;e:4;118;62;e:5;118;62;e:2;60;n;118;58;34;94;34;45;95;118;58;34;33;34;45;95;118;58;34;61;34;45;95;e;118;e:2;n;e:6;36;e;35;e;62;58;36;94;e:6;36;e:4;n;e:6;58;e;36;e;118;e:2;62;94;e:5;38;e:4;n;e:4;62;38;94;e;36;e:4;58;45;e:5;45;e:4;n;e:4;49;118;62;124;60;35;58;93;94;58;92;e:5;33;e:4;n;e:4;92;e;49;e:7;49;e:5;46;e:4;n;e:4;45;e;92;e:6;118;95;e:5;118;e:3;60;n;e:4;118;60;45;e:5;42;e;36;e:10;n;e:6;118;93;e;58;92;93;60;e;36;e:10;n;e:14;62;e;94;e:8;n;e:14;91;e:10;n;e:14;49;e:10;n;e:14;92;e;42;e:8;n;e:14;45;e;93;e:8;n;e:14;118;58;95;e:8;n;e:16;36;e:8;n;e:16;46;e:8;n;e:4;118;62;e:10;118;e:7;60;n;e:3;62;34;35;e:15;94;e:3;n;e:4;73;e:20;n;e:4;110;119;e:19;n;e:4;118:2;e:18;60;n;e:4;97;e:20;n;e:4;108;e:20;n;e:4;105;e:20;n;e:4;100;e:20;n;e:25;n;e:4;67;e:20;n;e:4;104;e:20;n;e:4;97;e:20;n;e:4;114;e:20;n;e:4;97;e:20;n;e:4;99;e:20;n;e:4;116;e:20;n;e:4;101;e:20;n;e:4;114;e:20;n;e:4;58;e:20;n;e:25;n;e:4;34;e:20;n;e:3;118;60;e:20;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;n;e:25;",
 	"Looping Better Calculator":           "118;62;118;e:8;118;e:8;118;e:9;118;e:49;n;38;e;58;e:8;58;e:8;58;e:9;58;e:49;n;126;e;34;e:8;34;e:8;34;e:9;34;e:49;n;62;94;43;e:8;47;e:8;60;e:9;94;e:17;62;e:20;118;e:10;n;e:2;34;e:8;34;e:8;34;e:9;34;e:2;62;49;92;45;118;e:9;118;34;73;110;118;97;108;105;100;e;67;104;97;114;97;99;116;101;114;58;e;34;60;e:10;n;e:2;45;e:8;45;e:8;45;e:9;45;e:2;38;118;e:2;60;e:9;62;35;e;119;118;e:28;n;e;118;95;36;38;43;46;e:2;118:2;95;36;38;92;47;46;118;e;118;95;36;38;96;46;118;e:3;118;95;36;58;94;62;49;92;45;118;e:41;n;e;62;118;e:7;62;118;e:7;62;118;e:8;62;118;e:3;124;e:3;93;e:41;n;e:2;58;e:8;58;e:8;58;e:4;118;e:3;46;58;35;36:2;60;e:45;n;e:2;34;e:8;34;e:8;34;e:9;34;e:3;35;e:3;58;e:41;n;e:2;45;e:8;37;e:8;50;e:9;33;62;118;e;58;e:3;92;e:41;n;e:2;34;e:8;34;e:8;34;e:9;34;58;e:2;93;e:3;93;e:41;n;e:2;45;e:8;45;e:8;45;e:9;45;36;e:2;94;e:2;42;60;e:41;n;e;118;95;36;38;92;45;46;e;118:2;95;36;38;92;37;46;118;e;118;95;36;58;42;46;118;e:3;118;95;94;62;58:2;e;118;e:43;n;e;62;118;e:7;62;118;e:7;62;118;e:8;62;118;e;94;45;92;49;95;36:2;62;91;49;92;45;118;e:35;n;e:2;58;e:8;58;e:8;58;e:9;58;e:13;58;e:35;n;e:2;34;e:8;34;e:8;34;e:3;62;118;e:4;34;e:8;94;e:2;42;93;95;36;46;118;e:32;n;e:2;42;e:8;60;e:8;51;e:3;46;e:5;61;e:49;n;e:2;34;e:8;34;e:8;34;e:3;42;e:5;34;e:49;n;e:2;45;e:8;45;e:8;45;e:3;42;e:5;45;e:49;n;e;118;95;36;38;42;46;e:2;118:2;95;36;38;92;96;46;118;e;118;95;36;58:2;94;e:4;118;95;36;38;45;33;46;118;e:43;n;e;62;118;e:7;62;e:9;118;e:8;62;e:18;94;e:31;n;e:19;62;e:10;118;e:49;n;e:2;62;e:8;118;e:68;n;118;e:8;60;e:7;60;e:7;60;e:3;60;e:6;60;e:10;60;e:3;60;e:28;",
 	"99 Bottles of Beer":                  "123;57:2;125;58;46;48;62;34;e:2;108:2;97;119;e;101;104;116;e;110;111;e;114;101:2;98;e;102;111;e;115;101;108;116:2;111;98;34;62;58;118;36;e:37;n;e:39;94;44;95;94;62;e:2;58;46;48;118;e:30;n;e:7;48;e:23;118;34;98;111;116:2;108;101;115;e;111;102;e;98;101:2;114;34;60;e:30;n;e:7;46;e:23;62;58;118;e:46;n;e:7;58;e:23;94;44;95;36;57;49;43;44;48;34;110;119;111;100;e;101;110;111;e;101;107;97;84;34;62;58;118;e:22;n;e:7;94;e;60;e:45;94;44;95;118;e:21;n;e:7;62;58;124;e:22;62;58;118;34;e;80;97;115:2;e;105;116;e;97;114;111;117;110;100;34;48;44;43;49;57;36;60;e:21;n;e:7;44;e;64;e:22;94;44;95;118;e:44;n;e:7;43;e:27;36;e:44;n;e:7;49;e:27;57;e:44;n;e:7;57;e:27;49;e:44;n;62;58;118;e:4;36;e:27;43;e:43;62;n;94;44;95;57;49;43;44;94;e:27;44;e:44;n;34;98;111;116:2;108;101;115;e;111;102;e;98;101:2;114;e;111;110;e;116;104;101;e;119;97;108:2;33;34;48;46;58;60;e;49;e:43;94;n;e:35;92;e:44;n;e:35;45;e:44;n;e:33;94;e;60;e:44;n;e:80;n;e:80;n;e:80;n;e:42;62;118;e:36;n;e:42;44;e:37;n;e:42;43;e:37;n;e:42;49;e:37;n;e:42;57;e:37;",
 	"Faster 99 Bottles of Beer":           "123;57:2;125;58;46;48;62;e:2;34;108:2;97;119;e;101;104;116;e;110;111;e;114;101:2;98;e;102;111;e;115;101;108;116:2;111;98;34;119;118;e:39;n;e:40;62;e;57;49;43;44;58;46;48;118;e:30;n;e:7;48;e:23;118;34;98;111;116:2;108;101;115;e;111;102;e;98;101:2;114;34;60;e:30;n;e:7;46;e:72;n;e:7;58;e:23;62;119;e:2;57;49;43;44;48;34;110;119;111;100;e;101;110;111;e;101;107;97;84;34;119;e:2;118;e:21;n;e:7;94;e;60;e:70;n;e:7;62;58;124;e:25;118;34;80;97;115:2;e;105;116;e;97;114;111;117;110;100;34;48;44;43;49;57;e;60;e:21;n;e:7;44;e;64;e:70;n;e:7;43;e:27;119;e:44;n;e:7;49;e:27;57;e:44;n;e:7;57;e:27;49;e:44;n;e:35;43;e:44;n;119;e:2;57;49;43;44;94;e:27;44;e:43;62;n;34;98;111;116:2;108;101;115;e;111;102;e;98;101:2;114;e;111;110;e;116;104;101;e;119;97;108:2;33;34;48;46;58;60;e;49;e:43;94;n;e:35;92;e:44;n;e:35;45;e:44;n;e:33;94;e;60;e:44;n;e:80;n;e:80;n;e:80;n;e:42;62;118;e:36;n;e:42;44;e:37;n;e:42;43;e:37;n;e:42;49;e:37;n;e:42;57;e:37;",
@@ -835,32 +835,87 @@ var eSelect = $("#example-select");
 for(let e in examples){
 	eSelect.append($(`<option value="${examples[e]}">${e}</option>`));
 }
+function contents_at(x, y){
+	let h = get_cell_html(x, y);
+	return h.text();
+}
+
 async function export_board(){ //Board is a run-length encoded string containing controls for newline, empty space, and character codes
-	let str = "";
-	body.addClass("exporting");
-	for(let y = 0; y < board.length; y++){
-		for(let x = 0; x < board[y].length; x++){
-			str += board[y][x] ? board[y][x].charCodeAt(0) : "e";
-			set_selected_cell(x, y);
-			//Add a colon and how many of the same cells there are to the right (including this cell). Skip those cells.
-			let count = 1;
-			for(let k = x + 1; k < board[y].length; k++){
-				if(board[y][k] == board[y][x]){
-					count++;
-					set_selected_cell(k, y);
+	let export_direction = $("#export-mode").val();
+	if(export_direction == "text"){
+		let str = "";
+		body.addClass("exporting");
+		for(let y = 0; y < board.length; y++){
+			for(let x = 0; x < board[y].length; x++){
+				if(board[y][x]){
+					str += board[y][x];
+					output_el.html(str);
+					set_selected_cell(x, y);
+					await sleep(1);
 				}else{
-					break;
+					str += " ";
 				}
 			}
-			if(count > 1){ //Exclude the count if there's only one cell
-				str += ":" + count;
-			}
-			str += ";";
-			$("#output").text(str);
-			x += count - 1; //Skip the cells we just added
-			await sleep(1);
+			str += "<br />";
 		}
-		str += "n;";
+		output_el.html(str);
+		body.removeClass("exporting");
+		return;
+	}
+	let str = "";
+	body.addClass("exporting");
+	output_el.removeClass("initial").addClass("exporting");
+	if(export_direction == "row"){
+		for(let y = 0; y < board_height; y++){
+			for(let x = 0; x < board_width; x++){
+				str += contents_at(x, y) ? contents_at(x, y).charCodeAt(0) : "e";
+				set_selected_cell(x, y);
+				//Add a colon and how many of the same cells there are to the right (including this cell). Skip those cells.
+				let count = 1;
+				for(let k = x + 1; k < board_width; k++){
+					if(contents_at(k, y) == contents_at(x, y)){
+						count++;
+						set_selected_cell(k, y);
+					}else{
+						break;
+					}
+				}
+				if(count > 1){ //Exclude the count if there's only one cell
+					str += ":" + count;
+				}
+				str += ";";
+				output_el.text(str);
+				x += count - 1; //Skip the cells we just added
+				await sleep(1);
+			}
+			str += "n;";
+		}
+	}else{
+		str += "C";
+		for(let x = 0; x < board_width; x++){
+			for(let y = 0; y < board_height; y++){
+				str += contents_at(x, y) ? contents_at(x, y).charCodeAt(0) : "e";
+				set_selected_cell(x, y);
+				let count = 1;
+				for(let k = y + 1; k < board_height; k++){
+					if(contents_at(x, k) == contents_at(x, y)){
+						count++;
+						set_selected_cell(x, k);
+					}else{
+						break;
+					}
+				}
+				if(count > 1){
+					str += `:${count}`;
+				}
+				str += ";";
+				output_el.text(str);
+				y += count - 1;
+
+				await sleep(1);
+			}
+			str += "n;";
+		}
 	}
 	body.removeClass("exporting");
 }
@@ -873,25 +928,37 @@ async function import_board(code=""){
 	}
 	body.addClass("importing");
 	if(board_str){
+		let col_mode = false;
+		if(board_str.startsWith("C")){
+			board_str = board_str.slice(1); //Remove the first character.
+			col_mode = true;
+		}
 		board_str = board_str.split(";");
 		let current_x = 0;
 		let current_y = 0;
 		for(let i = 0; i < board_str.length-1; i++){
 			if(board_str[i] == "n"){
-				current_x = 0;
-				current_y++;
+				if(!col_mode){
+					current_x = 0;
+					current_y++;
+				}else{
+					current_x++;
+					current_y = 0;
+				}
 			}else{
 				let data = board_str[i].split(":");
 				if(data.length == 1){
 					set_selected_cell(current_x, current_y);
 					set_selected_conts(data[0] != "e" ? String.fromCharCode(data[0]) : "");
-					current_x++;
+					if(!col_mode)current_x++;
+					else current_y++;
 				}else{
 					let count = parseInt(data[1]);
 					for(let j = 0; j < count; j++){
 						set_selected_cell(current_x, current_y);
 						set_selected_conts(data[0] != "e" ? String.fromCharCode(data[0]) : "");
-						current_x++;
+						if(!col_mode)current_x++;
+						else current_y++;
 					}
 				}
 			}
@@ -916,7 +983,7 @@ async function export_text(){ //Converts board to text and exports it.
 		for(let x = 0; x < board[y].length; x++){
 			if(board[y][x]){
 				str += board[y][x];
-				$("#output").html(str);
+				output_el.html(str);
 				set_selected_cell(x, y);
 				await sleep(1);
 			}else{
@@ -925,7 +992,7 @@ async function export_text(){ //Converts board to text and exports it.
 		}
 		str += "<br />";
 	}
-	$("#output").html(str);
+	output_el.html(str);
 	body.removeClass("exporting");
 }
 function pretty_num(n){

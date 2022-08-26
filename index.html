@@ -118,6 +118,11 @@
 					</tr>
 				</tbody>
 			</table>
+			<select id="export-mode">
+				<option value="row">Export by Rows</option>
+				<option value="column">Export by Columns</option>
+				<option value="text">Export as Text</option>
+			</select>
 			<select id="example-select"></select>
 			<button id="example-load" 
 				onclick="if(!has_modified_board || confirm('This will clear the board. Continue?')){import_board($('#example-select').val()).then(()=>has_modified_board=false);};"
@@ -130,7 +135,6 @@
 					<option value="strict" title="Errors shown in console. Program stopped.">Strict</option>
 				</select>
 			</label>
-			<button onclick="export_text()">Export Text</button>
 		</div>
 	</div>
 	<div id="heap"></div>
