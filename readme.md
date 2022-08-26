@@ -13,6 +13,8 @@ A simple befunge-93 interpreter written in JavaScript. It has some advanced feat
 - ) - Push SWAP value to stack and clear
 - ANSI Code support in Output
 
+<sub>This list is not updated frequently. See `commands.md` for more info.</sub>
+
 # Instructions:
 <br>
 Write your program in the 80x25 grid to the left. The Middle column is the stack and this column is the output. (This is ripped from the file itself, it's got an identical description.)
