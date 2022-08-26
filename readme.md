@@ -16,22 +16,18 @@ A simple befunge-93 interpreter written in JavaScript. It has some advanced feat
 <sub>This list is not updated frequently. See `commands.md` for more info.</sub>
 
 # Instructions:
-<br>
-Write your program in the 80x25 grid to the left. The Middle column is the stack and this column is the output. (This is ripped from the file itself, it's got an identical description.)
-<br>
-Choose the speed to play at and hit "Start". This generates an iterator that you can use to step through the program or run the program at the given speed.
+Any time you write text, it will be put at the cell highlighted blue in the grid. Use the "pluspad" to set your writing direction. When auto is selected, directional instructions will change the direction. Use shift+arrow to set your writing direction. Page Up, Page Down, Home, and End will move the cursor to the edges of the grid.
 
-# Controls:
+When you are ready to run the code, set the speed you want to run it at and hit start. Use the step, stop, and play/pause buttons to control the execution.
 
-You can use the pluspad below to set the writing direction. The "Auto" button makes the editor change the writing direction when you type a directional character.
+Programs can be exported or imported. Currently, you cannot import text. Export codes are run-length encoded. Exporting by columns will scan from left to right when importing and exporting, whereas exporting by rows scans vertically downwards.
 
-"Leaping" will skip over empty spaces when running the program.
+There are several examples in a dropdown to choose from. After you choose, press the button to load that example.
 
-You can export and import programs by using the "Export" button, copying the text in the output box, and pasting it in after using the "Import" button.
+Error handling allows you to change what the interpreter does when an error is encounted. By default, this is set to "loose".
+- Ignore: Nothing happens when an error occurs. This may cause unexpected behavior because the interpreter will make all errors recoverable.
+- Loose: An error is printed to the console in red. This may change the ANSI style that is currently set for your output.
+- Strict: Same as Loose, but the execution ends upon an error.
 
-There are several examples you can choose from below. You can also choose what to do when an error is encountered.
-- Ignore: Nothing happens when an error is encountered. This may cause seemingly unexpected behavior.
-- Loose: The program will output that an error occured and continue.
-- Strict: The program will output that an error occured and stop.
 <br>
 You can find this project on github pages at https://perodactyl.github.io/fungeyear_befunge_interpreter/
