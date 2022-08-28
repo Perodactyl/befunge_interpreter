@@ -128,7 +128,6 @@ let is_dir_temporary = false;
 //Add a handler to the body
 $(document.body).on("keydown", function (e) {
 	let key = e.key;
-	if(e.ctrlKey) return;
 	if(key == "Enter"){
 		set_selected_cell(selected_cell_x, selected_cell_y+1);
 	}else if(key == "Backspace"){
@@ -144,6 +143,7 @@ $(document.body).on("keydown", function (e) {
 		}
 	}else if(key == "ArrowUp"){
 		activate_pluspad_dir("up", false);
+		e.preventDefault();
 	}else if(key == "ArrowDown" && !e.shiftKey){
 		set_selected_cell(selected_cell_x, selected_cell_y+1);
 		if(is_dir_temporary){
@@ -152,6 +152,7 @@ $(document.body).on("keydown", function (e) {
 		}
 	}else if(key == "ArrowDown"){
 		activate_pluspad_dir("down", false);
+		e.preventDefault();
 	}else if(key == "ArrowLeft" && !e.shiftKey){
 		set_selected_cell(selected_cell_x-1, selected_cell_y);
 		if(is_dir_temporary){
@@ -160,6 +161,7 @@ $(document.body).on("keydown", function (e) {
 		}
 	}else if(key == "ArrowLeft"){
 		activate_pluspad_dir("left", false);
+		e.preventDefault();
 	}else if(key == "ArrowRight" && !e.shiftKey){
 		set_selected_cell(selected_cell_x+1, selected_cell_y);
 		if(is_dir_temporary){
@@ -168,9 +170,12 @@ $(document.body).on("keydown", function (e) {
 		}
 	}else if(key == "ArrowRight"){
 		activate_pluspad_dir("right", false);
+		e.preventDefault();
 	}else if(key == " "){
 		set_selected_conts("");
 		set_selected_cell(selected_cell_x+repos_dir_x, selected_cell_y+repos_dir_y);
+	}else if(key == "Tab"){
+		
 	}else if(key == "Home"){
 		set_selected_cell(0, selected_cell_y);
 	}else if(key == "End"){
@@ -1012,6 +1017,23 @@ function each_cell(callback){
 		}
 	}
 }
+
+async function copy_output(){
+	output_el.removeClass("initial").addClass("exporting");
+	let originalOutput = output_el.text();
+	let output = originalOutput.split("\n").map(ln=>ln.trim()).filter(ln=>!!ln).join("\n");
+	let spacing = "";
+	navigator.clipboard.writeText(originalOutput);
+	for(let idx in originalOutput){
+		let char = originalOutput[idx];
+		output = output.slice(1);
+		spacing += " ";
+		output_el.text(spacing + output);
+
+		await sleep(1);
+	}
+}
+
 const chars = [
 	"\0",
 	"0",
