@@ -45,3 +45,4 @@ Command |  Name  | Description
 `e`     |Empty   | Empties the output.
 `a`     |A str in| Asks the user for a string of text. Pushes the given text by character to the stack such that it is backwards. This means that using `w` immediately after this command will print the text in the order it was written.
 `=`     |Heap    | (EXPERIMENTAL). Makes several other commands interact with the heap, which is a tape of cells that all default to `0`. Heap space must manually be allocated.
+`𓅱`     |BFE     | A bird from egypt prints "𓅱" followed by a newline.

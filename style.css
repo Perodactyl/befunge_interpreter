@@ -332,3 +332,14 @@ button:disabled, .table-button:disabled{
 #heap .heap-item.selected-heap-item{
 	background-color: var(--heap-item-selected);
 }
+@keyframes just_read {
+	0% {
+		border-color: #80f;
+	}
+	100% {
+		border-color: var(--cell-border-color);
+	}
+}
+.just_read {
+	animation: just_read .5s linear;
+}
