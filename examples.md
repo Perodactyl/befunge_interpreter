@@ -25,3 +25,4 @@
  Faster 99 Bottles of Beer | True - Compose + Write | Like "99 Bottles of Beer", but faster. Uses the "w" command to print text much faster than using a print loop.
  CAT (echo) | True - Shift Left | Takes a string of input. Outputs the given input.
  Number Guessing Game | True - Shift Left + Write | Has a terrible RNG. Allows you to guess a number. Tells you "Too Low!" or "Too High!" if you were incorrect. Otherwise, says "You Win!" and terminates.
+ ROT13 Cipher | True - Compose + Less Than | Takes input and performs a [ROT13 Cipher Operation](https://esolangs.org/wiki/ROT13_encoder/decoder) on the input. This cipher is symmetrical.
