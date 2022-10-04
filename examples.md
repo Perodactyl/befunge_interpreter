@@ -26,3 +26,4 @@
  CAT (echo) | True - Shift Left | Takes a string of input. Outputs the given input.
  Number Guessing Game | True - Shift Left + Write | Has a terrible RNG. Allows you to guess a number. Tells you "Too Low!" or "Too High!" if you were incorrect. Otherwise, says "You Win!" and terminates.
  ROT13 Cipher | True - Compose + Less Than | Takes input and performs a [ROT13 Cipher Operation](https://esolangs.org/wiki/ROT13_encoder/decoder) on the input. This cipher is symmetrical.
+ FizzBuzz | False | Prints FizzBuzz numbers starting at 0. (Counts up, but if a number is a multiple of 3, print "Fizz". If it's a multiple of 5, print "Buzz". If it's a multiple of both, print "FizzBuzz")
